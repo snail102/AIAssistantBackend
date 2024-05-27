@@ -2,6 +2,7 @@ package com.example.plugins
 
 import com.example.buildCurlCommand
 import com.example.client
+import com.example.localDataSource.ChatHistory
 import com.example.models.ChatMessage
 import com.example.models.MessageGpt
 import com.example.models.RequestGpt
@@ -25,24 +26,47 @@ fun Application.configureRouting() {
 
     routing {
         post("/chat/completions") {
+            val user = call.request.headers["User"]
+            if (user != "Admin") {
+                call.respond(HttpStatusCode.Forbidden)
+            }
             val chatMessage = call.receive<ChatMessage>()
+            val startDialog = listOf(
+                MessageGpt(
+                    role = "system",
+                    content = "You are a programming assistant"
+                ),
+                MessageGpt(
+                    role = "user",
+                    content = chatMessage.content
+                )
+            )
+
+            val continuationDialog = ChatHistory.getPreviousMessages() + MessageGpt(
+                role = "user",
+                content = chatMessage.content
+            )
             val request = RequestGpt(
                 model = "gpt-3.5-turbo",
-                messages = listOf(
-                    MessageGpt(
-                        role = "system",
-                        content = "You are a programming assistant"
-                    ),
-                    MessageGpt(
-                        role = "user",
-                        content = chatMessage.content
-                    )
-                )
+                messages = if (ChatHistory.getPreviousMessages().isEmpty()) {
+                    startDialog
+                } else {
+                    continuationDialog
+                }
             )
             val response: HttpResponse = client.post(url) {
                 setBody(request)
             }
             val responseGpt = response.body<ResponseGpt>()
+
+            if (response.status == HttpStatusCode.OK) {
+                val savedMessages = if (ChatHistory.getPreviousMessages().isEmpty()) {
+                    startDialog
+                } else {
+                    continuationDialog
+                }
+                ChatHistory.addAll(savedMessages)
+            }
 
             call.respond(responseGpt)
         }

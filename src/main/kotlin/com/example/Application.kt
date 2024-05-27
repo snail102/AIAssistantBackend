@@ -2,6 +2,7 @@ package com.example
 
 import com.example.plugins.*
 import com.example.utils.loadProperties
+import configureDatabase
 import io.ktor.client.*
 import io.ktor.client.engine.*
 import io.ktor.client.engine.ProxyBuilder.http
@@ -63,4 +64,5 @@ fun Application.module() {
     configureHTTP()
     configureSerialization()
     configureRouting()
+    configureDatabase()
 }
