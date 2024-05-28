@@ -1,4 +1,5 @@
 import com.example.database.Users
+import com.example.utils.loadProperties
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import io.ktor.server.application.*
@@ -13,9 +14,9 @@ import org.jetbrains.exposed.sql.transactions.transaction
 
 
 fun Application.configureDatabase() {
-    val driverClass=environment.config.property("storage.driverClassName").getString()
-    val jdbcUrl=environment.config.property("storage.jdbcURL").getString()
-    val db=Database.connect(provideDataSource(jdbcUrl,driverClass))
+    val properties = loadProperties()
+    val jdbcUrl=properties.getProperty("jdbcURL")
+    val db=Database.connect(provideDataSource(jdbcUrl,"org.postgresql.Driver"))
 
     transaction(db){
         SchemaUtils.create(Users)
