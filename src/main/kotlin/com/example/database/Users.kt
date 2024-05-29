@@ -1,53 +1,50 @@
 package com.example.database
 
+import org.jetbrains.exposed.dao.IntEntity
+import org.jetbrains.exposed.dao.IntEntityClass
+import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.IntIdTable
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.transactions.transaction
 
 object Users : IntIdTable() {
-    val name = varchar("name", 50)
+    val login = varchar("login", 50).uniqueIndex()
+    val password = varchar("password", 50)
 }
 
 
-data class User(val id: Int, val name: String)
+class User(id: EntityID<Int>) : IntEntity(id) {
+    companion object : IntEntityClass<User>(Users)
+
+    var login by Users.login
+    var password by Users.password
+}
 
 
-
-class UserService {
-    fun getAllUsers(): List<User> = transaction {
-        Users.selectAll().map {
-            User(
-                it[Users.id].value,
-                it[Users.name],
-            )
+class UserService() {
+    fun createUser(login: String, password: String): User = transaction {
+        User.new {
+            this.login = login
+            this.password = password
         }
     }
 
+    fun getAllUsers(): List<User> = transaction {
+        User.all().toList()
+    }
+
     fun getUserById(id: Int): User? = transaction {
-        Users.selectAll().where { Users.id eq id }
-            .map {
-                User(
-                    it[Users.id].value,
-                    it[Users.name],
-                )
-            }.singleOrNull()
+        User.findById(id)
     }
 
-    fun addUser(name: String, age: Int): User = transaction {
-        val id = Users.insertAndGetId {
-            it[Users.name] = name
-        }.value
-        User(id, name)
-    }
-
-    fun updateUser(id: Int, name: String, age: Int): Boolean = transaction {
-        Users.update({ Users.id eq id }) {
-            it[Users.name] = name
-        } > 0
+    fun getUserByLogin(login: String): User? = transaction {
+        User.find { Users.login eq login }.singleOrNull()
     }
 
     fun deleteUser(id: Int): Boolean = transaction {
-        Users.deleteWhere { Users.id eq id } > 0
+        val user = User.findById(id)
+        user?.delete() ?: false
+        true
     }
 }

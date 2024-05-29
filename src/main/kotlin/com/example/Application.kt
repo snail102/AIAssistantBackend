@@ -2,17 +2,14 @@ package com.example
 
 import com.example.plugins.*
 import com.example.utils.loadProperties
-import configureDatabase
 import io.ktor.client.*
 import io.ktor.client.engine.*
-import io.ktor.client.engine.ProxyBuilder.http
 import io.ktor.client.engine.cio.*
 import io.ktor.client.plugins.*
 import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.plugins.logging.*
 import io.ktor.client.request.*
 import io.ktor.client.utils.*
-import io.ktor.client.utils.EmptyContent.contentType
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.application.*
@@ -63,6 +60,8 @@ val client = HttpClient(CIO) {
 fun Application.module() {
     configureHTTP()
     configureSerialization()
-    configureRouting()
     configureDatabase()
+    configureDi()
+    configureAuthentication()
+    configureRouting()
 }

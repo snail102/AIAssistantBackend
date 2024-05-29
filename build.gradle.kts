@@ -38,6 +38,8 @@ dependencies {
     implementation("io.ktor:ktor-client-logging")
     implementation("io.ktor:ktor-client-content-negotiation")
     implementation("io.ktor:ktor-server-netty-jvm")
+    implementation("io.ktor:ktor-server-auth")
+    implementation("io.ktor:ktor-server-auth-jwt")
     implementation("ch.qos.logback:logback-classic:$logback_version")
     implementation("io.ktor:ktor-server-config-yaml:2.3.11")
     testImplementation("io.ktor:ktor-server-tests-jvm")
@@ -48,4 +50,7 @@ dependencies {
     implementation("org.jetbrains.exposed:exposed-jdbc:$exposed_version")
     implementation("org.postgresql:postgresql:$postgres_version")
     implementation("com.zaxxer:HikariCP:$hikari_version")
+
+    implementation("io.insert-koin:koin-ktor:3.5.6")
+    implementation("io.insert-koin:koin-logger-slf4j:3.5.6")
 }

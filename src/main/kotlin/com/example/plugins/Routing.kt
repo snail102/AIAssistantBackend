@@ -1,7 +1,11 @@
 package com.example.plugins
 
+import com.auth0.jwt.exceptions.JWTVerificationException
+import com.example.authentication.JwtConfig
+import com.example.authorization.authorizationRouting
 import com.example.buildCurlCommand
 import com.example.client
+import com.example.database.UserService
 import com.example.localDataSource.ChatHistory
 import com.example.models.ChatMessage
 import com.example.models.MessageGpt
@@ -15,10 +19,12 @@ import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.application.*
+import io.ktor.server.auth.*
 import io.ktor.server.plugins.contentnegotiation.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import org.koin.ktor.ext.inject
 
 
 fun Application.configureRouting() {
@@ -69,6 +75,29 @@ fun Application.configureRouting() {
             }
 
             call.respond(responseGpt)
+        }
+
+
+
+
+        authenticate("auth-jwt") {
+            get("/protected") {
+                call.respondText("This is a protected route")
+            }
+        }
+        val userService by inject<UserService>()
+        authorizationRouting(userService)
+
+        post("/refresh") {
+            val refreshToken = call.receive<Parameters>()["refreshToken"] ?: return@post call.respond(HttpStatusCode.Unauthorized)
+            try {
+                val decodedJWT = JwtConfig.verifyToken(refreshToken)
+                val userId = decodedJWT.getClaim("userId").asString()
+                val newAccessToken = JwtConfig.generateAccessToken(userId)
+                call.respond(mapOf("accessToken" to newAccessToken))
+            } catch (e: JWTVerificationException) {
+                call.respond(HttpStatusCode.Unauthorized, "Invalid refresh token")
+            }
         }
     }
 }
