@@ -4,13 +4,12 @@ import org.jetbrains.exposed.dao.IntEntity
 import org.jetbrains.exposed.dao.IntEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.IntIdTable
-import org.jetbrains.exposed.sql.*
-import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.transactions.transaction
 
 object Users : IntIdTable() {
     val login = varchar("login", 50).uniqueIndex()
     val password = varchar("password", 50)
+    val email = varchar("email", 50)
 }
 
 
@@ -19,14 +18,16 @@ class User(id: EntityID<Int>) : IntEntity(id) {
 
     var login by Users.login
     var password by Users.password
+    var email by Users.email
 }
 
 
 class UserService() {
-    fun createUser(login: String, password: String): User = transaction {
+    fun createUser(login: String, password: String, email: String): User = transaction {
         User.new {
             this.login = login
             this.password = password
+            this.email = email
         }
     }
 

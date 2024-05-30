@@ -5,12 +5,15 @@ import com.example.authentication.JwtConfig
 import com.example.authorization.authorizationRouting
 import com.example.buildCurlCommand
 import com.example.client
+import com.example.confirmationEmail.confirmationEmailRouting
 import com.example.database.UserService
 import com.example.localDataSource.ChatHistory
+import com.example.mailSender.MailSender
 import com.example.models.ChatMessage
 import com.example.models.MessageGpt
 import com.example.models.RequestGpt
 import com.example.models.ResponseGpt
+import com.example.registration.registrationRouting
 import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.engine.cio.*
@@ -86,10 +89,23 @@ fun Application.configureRouting() {
             }
         }
         val userService by inject<UserService>()
-        authorizationRouting(userService)
+        authorizationRouting(
+            userService = userService
+        )
+
+        val mailSender by inject<MailSender>()
+        registrationRouting(
+            userService = userService,
+            mailSender = mailSender
+        )
+
+        confirmationEmailRouting(
+            userService = userService
+        )
 
         post("/refresh") {
-            val refreshToken = call.receive<Parameters>()["refreshToken"] ?: return@post call.respond(HttpStatusCode.Unauthorized)
+            val refreshToken =
+                call.receive<Parameters>()["refreshToken"] ?: return@post call.respond(HttpStatusCode.Unauthorized)
             try {
                 val decodedJWT = JwtConfig.verifyToken(refreshToken)
                 val userId = decodedJWT.getClaim("userId").asString()
