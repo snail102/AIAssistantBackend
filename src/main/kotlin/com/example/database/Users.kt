@@ -1,5 +1,7 @@
 package com.example.database
 
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import org.jetbrains.exposed.dao.IntEntity
 import org.jetbrains.exposed.dao.IntEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
@@ -23,29 +25,39 @@ class User(id: EntityID<Int>) : IntEntity(id) {
 
 
 class UserService() {
-    fun createUser(login: String, password: String, email: String): User = transaction {
-        User.new {
-            this.login = login
-            this.password = password
-            this.email = email
+    suspend fun createUser(login: String, password: String, email: String): User = withContext(Dispatchers.IO) {
+        transaction {
+            User.new {
+                this.login = login
+                this.password = password
+                this.email = email
+            }
         }
     }
 
-    fun getAllUsers(): List<User> = transaction {
-        User.all().toList()
+    suspend fun getAllUsers(): List<User> = withContext(Dispatchers.IO) {
+        transaction {
+            User.all().toList()
+        }
     }
 
-    fun getUserById(id: Int): User? = transaction {
-        User.findById(id)
+    suspend fun getUserById(id: Int): User? = withContext(Dispatchers.IO) {
+        transaction {
+            User.findById(id)
+        }
     }
 
-    fun getUserByLogin(login: String): User? = transaction {
-        User.find { Users.login eq login }.singleOrNull()
+    suspend fun getUserByLogin(login: String): User? = withContext(Dispatchers.IO) {
+        transaction {
+            User.find { Users.login eq login }.singleOrNull()
+        }
     }
 
-    fun deleteUser(id: Int): Boolean = transaction {
-        val user = User.findById(id)
-        user?.delete() ?: false
-        true
+    suspend fun deleteUser(id: Int): Boolean = withContext(Dispatchers.IO) {
+        transaction {
+            val user = User.findById(id)
+            user?.delete() ?: false
+            true
+        }
     }
 }

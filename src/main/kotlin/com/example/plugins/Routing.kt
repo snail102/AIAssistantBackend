@@ -1,11 +1,9 @@
 package com.example.plugins
 
-import com.auth0.jwt.exceptions.JWTVerificationException
-import com.example.authentication.JwtConfig
 import com.example.authorization.authorizationRouting
-import com.example.buildCurlCommand
 import com.example.client
 import com.example.confirmationEmail.confirmationEmailRouting
+import com.example.database.TokenService
 import com.example.database.UserService
 import com.example.localDataSource.ChatHistory
 import com.example.mailSender.MailSender
@@ -13,17 +11,14 @@ import com.example.models.ChatMessage
 import com.example.models.MessageGpt
 import com.example.models.RequestGpt
 import com.example.models.ResponseGpt
+import com.example.refreshToken.refreshTokenRouting
 import com.example.registration.registrationRouting
-import io.ktor.client.*
 import io.ktor.client.call.*
-import io.ktor.client.engine.cio.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
-import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
-import io.ktor.server.plugins.contentnegotiation.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
@@ -81,13 +76,6 @@ fun Application.configureRouting() {
         }
 
 
-
-
-        authenticate("auth-jwt") {
-            get("/protected") {
-                call.respondText("This is a protected route")
-            }
-        }
         val userService by inject<UserService>()
         authorizationRouting(
             userService = userService
@@ -103,16 +91,12 @@ fun Application.configureRouting() {
             userService = userService
         )
 
-        post("/refresh") {
-            val refreshToken =
-                call.receive<Parameters>()["refreshToken"] ?: return@post call.respond(HttpStatusCode.Unauthorized)
-            try {
-                val decodedJWT = JwtConfig.verifyToken(refreshToken)
-                val userId = decodedJWT.getClaim("userId").asString()
-                val newAccessToken = JwtConfig.generateAccessToken(userId)
-                call.respond(mapOf("accessToken" to newAccessToken))
-            } catch (e: JWTVerificationException) {
-                call.respond(HttpStatusCode.Unauthorized, "Invalid refresh token")
+        val tokenService by inject<TokenService>()
+        refreshTokenRouting(tokenService = tokenService)
+
+        authenticate("auth-jwt") {
+            get("/protected") {
+                call.respondText("This is a protected route")
             }
         }
     }

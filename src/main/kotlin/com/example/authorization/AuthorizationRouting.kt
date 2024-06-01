@@ -3,6 +3,7 @@ package com.example.authorization
 import com.example.authentication.JwtConfig
 import com.example.authorization.models.LoginRequest
 import com.example.database.UserService
+import com.example.models.TokenDto
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.request.*
@@ -18,9 +19,13 @@ fun Route.authorizationRouting(userService: UserService) {
         if (user == null) {
             call.respond(HttpStatusCode.NotFound)
         } else {
-            val accessToken = JwtConfig.generateAccessToken(user.id.toString())
-            val refreshToken = JwtConfig.generateRefreshToken(user.id.toString())
-            call.respond(mapOf("accessToken" to accessToken, "refreshToken" to refreshToken))
+            val generatedTokens = JwtConfig.getTokens(user.id.value)
+            call.respond(
+                TokenDto(
+                    accessToken = generatedTokens.access,
+                    refreshToken = generatedTokens.refresh
+                )
+            )
         }
     }
 }

@@ -4,6 +4,7 @@ import com.example.authentication.JwtConfig
 import com.example.confirmationEmail.models.ConfirmEmailRequest
 import com.example.database.UserService
 import com.example.localDataSource.TempUserRegistration
+import com.example.models.TokenDto
 import io.ktor.server.application.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
@@ -13,7 +14,8 @@ fun Route.confirmationEmailRouting(userService: UserService) {
     post("/confirmation_email") {
 
         val confirmEmailRequest = call.receive<ConfirmEmailRequest>()
-        val userTemp = TempUserRegistration.getUserByLogin(confirmEmailRequest.login) ?: return@post call.respond("Not found registration user")
+        val userTemp = TempUserRegistration.getUserByLogin(confirmEmailRequest.login)
+            ?: return@post call.respond("Not found registration user")
 
         if (userTemp.code == confirmEmailRequest.confirmationCode) {
 
@@ -23,9 +25,13 @@ fun Route.confirmationEmailRouting(userService: UserService) {
                 email = userTemp.email
             )
 
-            val accessToken = JwtConfig.generateAccessToken(user.id.toString())
-            val refreshToken = JwtConfig.generateRefreshToken(user.id.toString())
-            call.respond(mapOf("accessToken" to accessToken, "refreshToken" to refreshToken))
+            val generatedTokens = JwtConfig.getTokens(user.id.value)
+            call.respond(
+                TokenDto(
+                    accessToken = generatedTokens.access,
+                    refreshToken = generatedTokens.refresh
+                )
+            )
         } else {
             call.respond("Code not valid")
         }
