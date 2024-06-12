@@ -29,56 +29,13 @@ fun Application.configureRouting() {
     val url = "https://api.openai.com/v1/chat/completions"
 
     routing {
-        post("/chat/completions") {
-            val user = call.request.headers["User"]
-            if (user != "Admin") {
-                call.respond(HttpStatusCode.Forbidden)
-            }
-            val chatMessage = call.receive<ChatMessage>()
-            val startDialog = listOf(
-                MessageGpt(
-                    role = "system",
-                    content = "You are a programming assistant"
-                ),
-                MessageGpt(
-                    role = "user",
-                    content = chatMessage.content
-                )
-            )
-
-            val continuationDialog = ChatHistory.getPreviousMessages() + MessageGpt(
-                role = "user",
-                content = chatMessage.content
-            )
-            val request = RequestGpt(
-                model = "gpt-3.5-turbo",
-                messages = if (ChatHistory.getPreviousMessages().isEmpty()) {
-                    startDialog
-                } else {
-                    continuationDialog
-                }
-            )
-            val response: HttpResponse = client.post(url) {
-                setBody(request)
-            }
-            val responseGpt = response.body<ResponseGpt>()
-
-            if (response.status == HttpStatusCode.OK) {
-                val savedMessages = if (ChatHistory.getPreviousMessages().isEmpty()) {
-                    startDialog
-                } else {
-                    continuationDialog
-                }
-                ChatHistory.addAll(savedMessages)
-            }
-
-            call.respond(responseGpt)
-        }
-
 
         val userService by inject<UserService>()
+        val tokenService by inject<TokenService>()
+
         authorizationRouting(
-            userService = userService
+            userService = userService,
+            tokenService = tokenService
         )
 
         val mailSender by inject<MailSender>()
@@ -91,12 +48,57 @@ fun Application.configureRouting() {
             userService = userService
         )
 
-        val tokenService by inject<TokenService>()
         refreshTokenRouting(tokenService = tokenService)
 
         authenticate("auth-jwt") {
             get("/protected") {
                 call.respondText("This is a protected route")
+            }
+
+            post("/chat/completions") {
+                val user = call.request.headers["User"]
+                if (user != "Admin") {
+                    call.respond(HttpStatusCode.Forbidden)
+                }
+                val chatMessage = call.receive<ChatMessage>()
+                val startDialog = listOf(
+                    MessageGpt(
+                        role = "system",
+                        content = "You are a programming assistant"
+                    ),
+                    MessageGpt(
+                        role = "user",
+                        content = chatMessage.content
+                    )
+                )
+
+                val continuationDialog = ChatHistory.getPreviousMessages() + MessageGpt(
+                    role = "user",
+                    content = chatMessage.content
+                )
+                val request = RequestGpt(
+                    model = "gpt-3.5-turbo",
+                    messages = if (ChatHistory.getPreviousMessages().isEmpty()) {
+                        startDialog
+                    } else {
+                        continuationDialog
+                    }
+                )
+                val response: HttpResponse = client.post(url) {
+                    setBody(request)
+                }
+                val responseGpt = response.body<ResponseGpt>()
+
+                if (response.status == HttpStatusCode.OK) {
+                    val savedMessages = if (ChatHistory.getPreviousMessages().isEmpty()) {
+                        startDialog
+                    } else {
+                        continuationDialog
+                    }
+                    ChatHistory.addAll(savedMessages)
+                }
+
+                call.respond(responseGpt)
             }
         }
     }

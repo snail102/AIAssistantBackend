@@ -28,6 +28,7 @@ object  DatabaseFactory {
 
         transaction {
             SchemaUtils.create(Users)
+            SchemaUtils.create(Tokens)
         }
     }
 }

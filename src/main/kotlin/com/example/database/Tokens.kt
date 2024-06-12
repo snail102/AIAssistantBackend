@@ -14,8 +14,8 @@ import org.jetbrains.exposed.sql.update
 
 object Tokens : IntIdTable() {
     val userId = integer("user_id")
-    val accessToken = varchar("access_token", 100)
-    val refreshToken = varchar("refresh_token", 100)
+    val accessToken = varchar("access_token", 300)
+    val refreshToken = varchar("refresh_token", 300)
     val accessExpiresAt = datetime("access_expires_at")
     val refreshExpiresAt = datetime("refresh_expires_at")
 }

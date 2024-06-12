@@ -6,6 +6,7 @@ import org.jetbrains.exposed.dao.IntEntity
 import org.jetbrains.exposed.dao.IntEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.IntIdTable
+import org.jetbrains.exposed.sql.lowerCase
 import org.jetbrains.exposed.sql.transactions.transaction
 
 object Users : IntIdTable() {
@@ -49,7 +50,7 @@ class UserService() {
 
     suspend fun getUserByLogin(login: String): User? = withContext(Dispatchers.IO) {
         transaction {
-            User.find { Users.login eq login }.singleOrNull()
+            User.find { Users.login.lowerCase() eq login.lowercase() }.singleOrNull()
         }
     }
 
