@@ -8,12 +8,13 @@ import org.jetbrains.exposed.dao.IntEntity
 import org.jetbrains.exposed.dao.IntEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.IntIdTable
+import org.jetbrains.exposed.sql.ReferenceOption
 import org.jetbrains.exposed.sql.kotlin.datetime.datetime
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.jetbrains.exposed.sql.update
 
 object Tokens : IntIdTable() {
-    val userId = integer("user_id")
+    val userId = integer("user_id").references(Users.id, onDelete = ReferenceOption.CASCADE)
     val accessToken = varchar("access_token", 300)
     val refreshToken = varchar("refresh_token", 300)
     val accessExpiresAt = datetime("access_expires_at")

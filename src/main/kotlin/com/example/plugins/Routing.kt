@@ -1,8 +1,13 @@
 package com.example.plugins
 
 import com.example.authorization.authorizationRouting
+import com.example.chat.chatRouting
+import com.example.chatAll.chatAllRouting
+import com.example.chatHistory.chatHistoryRouting
 import com.example.client
 import com.example.confirmationEmail.confirmationEmailRouting
+import com.example.database.ChatService
+import com.example.database.MessageService
 import com.example.database.TokenService
 import com.example.database.UserService
 import com.example.localDataSource.ChatHistory
@@ -26,12 +31,12 @@ import org.koin.ktor.ext.inject
 
 
 fun Application.configureRouting() {
-    val url = "https://api.openai.com/v1/chat/completions"
-
     routing {
 
         val userService by inject<UserService>()
         val tokenService by inject<TokenService>()
+        val chatService by inject<ChatService>()
+        val messageService by inject<MessageService>()
 
         authorizationRouting(
             userService = userService,
@@ -55,51 +60,25 @@ fun Application.configureRouting() {
                 call.respondText("This is a protected route")
             }
 
-            post("/chat/completions") {
-                val user = call.request.headers["User"]
-                if (user != "Admin") {
-                    call.respond(HttpStatusCode.Forbidden)
-                }
-                val chatMessage = call.receive<ChatMessage>()
-                val startDialog = listOf(
-                    MessageGpt(
-                        role = "system",
-                        content = "You are a programming assistant"
-                    ),
-                    MessageGpt(
-                        role = "user",
-                        content = chatMessage.content
-                    )
-                )
+            chatRouting(
+                tokensService = tokenService,
+                userService = userService,
+                chatService = chatService,
+                messageService = messageService
+            )
 
-                val continuationDialog = ChatHistory.getPreviousMessages() + MessageGpt(
-                    role = "user",
-                    content = chatMessage.content
-                )
-                val request = RequestGpt(
-                    model = "gpt-3.5-turbo",
-                    messages = if (ChatHistory.getPreviousMessages().isEmpty()) {
-                        startDialog
-                    } else {
-                        continuationDialog
-                    }
-                )
-                val response: HttpResponse = client.post(url) {
-                    setBody(request)
-                }
-                val responseGpt = response.body<ResponseGpt>()
+            chatHistoryRouting(
+                tokensService = tokenService,
+                chatService = chatService,
+                messageService = messageService
+            )
 
-                if (response.status == HttpStatusCode.OK) {
-                    val savedMessages = if (ChatHistory.getPreviousMessages().isEmpty()) {
-                        startDialog
-                    } else {
-                        continuationDialog
-                    }
-                    ChatHistory.addAll(savedMessages)
-                }
-
-                call.respond(responseGpt)
-            }
+            chatAllRouting(
+                tokensService = tokenService,
+                userService = userService,
+                chatService = chatService,
+                messageService = messageService
+            )
         }
     }
 }

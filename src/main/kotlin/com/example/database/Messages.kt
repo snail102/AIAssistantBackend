@@ -7,11 +7,12 @@ import org.jetbrains.exposed.dao.IntEntity
 import org.jetbrains.exposed.dao.IntEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.IntIdTable
+import org.jetbrains.exposed.sql.ReferenceOption
 import org.jetbrains.exposed.sql.kotlin.datetime.datetime
 import org.jetbrains.exposed.sql.transactions.transaction
 
 object Messages : IntIdTable() {
-    val chatId = integer("chat_id")
+    val chatId = integer("chat_id").references(Chats.id, onDelete = ReferenceOption.CASCADE)
     val isUserRole = bool("is_user_role")
     val content = varchar("content", length = 5000)
     val dateTime = datetime("date_time")
@@ -28,7 +29,7 @@ class Message(id: EntityID<Int>) : IntEntity(id) {
 }
 
 
-class MessagesService() {
+class MessageService() {
 
     suspend fun createMessage(
         chatId: Int,
