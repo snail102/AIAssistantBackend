@@ -21,7 +21,7 @@ fun Route.chatHistoryRouting(
     chatService: ChatService,
     messageService: MessageService
 ) {
-    get("/chat_history{$CHAT_ID_PARAMETER}") {
+    get("/chat_message_history{$CHAT_ID_PARAMETER}") {
         val chatId =
             call.parameters[CHAT_ID_PARAMETER]?.toIntOrNull() ?: return@get call.respond(HttpStatusCode.NotFound)
 
@@ -36,7 +36,7 @@ fun Route.chatHistoryRouting(
             chatId = chatId,
             messages = messagesFromChat.map { message ->
                 ChatHistoryMessage(
-                    id = message.id.value,
+                    id = message.id,
                     isUserRole = message.isUserRole,
                     content = message.content
                 )

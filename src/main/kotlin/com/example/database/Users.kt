@@ -16,8 +16,8 @@ object Users : IntIdTable() {
 }
 
 
-class User(id: EntityID<Int>) : IntEntity(id) {
-    companion object : IntEntityClass<User>(Users)
+class UserEntity(id: EntityID<Int>) : IntEntity(id) {
+    companion object : IntEntityClass<UserEntity>(Users)
 
     var login by Users.login
     var password by Users.password
@@ -26,9 +26,9 @@ class User(id: EntityID<Int>) : IntEntity(id) {
 
 
 class UserService() {
-    suspend fun createUser(login: String, password: String, email: String): User = withContext(Dispatchers.IO) {
+    suspend fun createUser(login: String, password: String, email: String): UserEntity = withContext(Dispatchers.IO) {
         transaction {
-            User.new {
+            UserEntity.new {
                 this.login = login
                 this.password = password
                 this.email = email
@@ -36,28 +36,28 @@ class UserService() {
         }
     }
 
-    suspend fun getAllUsers(): List<User> = withContext(Dispatchers.IO) {
+    suspend fun getAllUsers(): List<UserEntity> = withContext(Dispatchers.IO) {
         transaction {
-            User.all().toList()
+            UserEntity.all().toList()
         }
     }
 
-    suspend fun getUserById(id: Int): User? = withContext(Dispatchers.IO) {
+    suspend fun getUserById(id: Int): UserEntity? = withContext(Dispatchers.IO) {
         transaction {
-            User.findById(id)
+            UserEntity.findById(id)
         }
     }
 
-    suspend fun getUserByLogin(login: String): User? = withContext(Dispatchers.IO) {
+    suspend fun getUserByLogin(login: String): UserEntity? = withContext(Dispatchers.IO) {
         transaction {
-            User.find { Users.login.lowerCase() eq login.lowercase() }.singleOrNull()
+            UserEntity.find { Users.login.lowerCase() eq login.lowercase() }.singleOrNull()
         }
     }
 
     suspend fun deleteUser(id: Int): Boolean = withContext(Dispatchers.IO) {
         transaction {
-            val user = User.findById(id)
-            user?.delete() ?: false
+            val userEntity = UserEntity.findById(id)
+            userEntity?.delete() ?: false
             true
         }
     }

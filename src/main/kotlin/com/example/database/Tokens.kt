@@ -22,8 +22,8 @@ object Tokens : IntIdTable() {
 }
 
 
-class Token(id: EntityID<Int>) : IntEntity(id) {
-    companion object : IntEntityClass<Token>(Tokens)
+class TokenEntity(id: EntityID<Int>) : IntEntity(id) {
+    companion object : IntEntityClass<TokenEntity>(Tokens)
 
     var userId by Tokens.userId
     var accessToken by Tokens.accessToken
@@ -40,9 +40,9 @@ class TokenService() {
         refreshToken: String,
         accessExpiresAt: LocalDateTime,
         refreshExpiresAt: LocalDateTime
-    ): Token = withContext(Dispatchers.IO) {
+    ): TokenEntity = withContext(Dispatchers.IO) {
         transaction {
-            Token.new {
+            TokenEntity.new {
                 this.userId = userId
                 this.accessToken = accessToken
                 this.refreshToken = refreshToken
@@ -53,17 +53,17 @@ class TokenService() {
 
     }
 
-    suspend fun getTokenByAccessToken(accessToken: String): Token? =
+    suspend fun getTokenByAccessToken(accessToken: String): TokenEntity? =
         withContext(Dispatchers.IO) {
             transaction {
-                Token.find { Tokens.accessToken eq accessToken }.singleOrNull()
+                TokenEntity.find { Tokens.accessToken eq accessToken }.singleOrNull()
             }
         }
 
-    suspend fun getTokenByRefreshToken(refreshToken: String): Token? =
+    suspend fun getTokenByRefreshToken(refreshToken: String): TokenEntity? =
         withContext(Dispatchers.IO) {
             transaction {
-                Token.find { Tokens.refreshToken eq refreshToken }.singleOrNull()
+                TokenEntity.find { Tokens.refreshToken eq refreshToken }.singleOrNull()
             }
         }
 
@@ -83,7 +83,7 @@ class TokenService() {
     suspend fun deleteTokenByUserId(userId: Int): Boolean {
         return withContext(Dispatchers.IO) {
             transaction {
-                val user = Token.find { Tokens.userId eq userId }.singleOrNull()
+                val user = TokenEntity.find { Tokens.userId eq userId }.singleOrNull()
                 user?.delete() ?: false
                 true
             }

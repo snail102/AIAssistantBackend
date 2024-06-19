@@ -1,5 +1,6 @@
 package com.example.database
 
+import com.example.utils.suspendTransaction
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.datetime.LocalDateTime
@@ -8,9 +9,7 @@ import org.jetbrains.exposed.dao.IntEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.IntIdTable
 import org.jetbrains.exposed.sql.ReferenceOption
-import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.kotlin.datetime.datetime
-import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.transaction
 
 object Chats : IntIdTable() {
@@ -20,13 +19,20 @@ object Chats : IntIdTable() {
 }
 
 
-class Chat(id: EntityID<Int>) : IntEntity(id) {
-    companion object : IntEntityClass<Chat>(Chats)
+class ChatEntity(id: EntityID<Int>) : IntEntity(id) {
+    companion object : IntEntityClass<ChatEntity>(Chats)
 
     var userId by Chats.userId
     var createdDate by Chats.createdDate
     var lastChangedDate by Chats.lastChangedDate
 }
+
+private fun daoToModel(dao: ChatEntity) = com.example.chat.domain.models.Chat(
+    id = dao.id.value,
+    userId = dao.userId,
+    createdDate = dao.createdDate,
+    lastChangedDate = dao.lastChangedDate
+)
 
 
 class ChatService() {
@@ -34,9 +40,9 @@ class ChatService() {
         userId: Int,
         createdDate: LocalDateTime,
         lastChangedDate: LocalDateTime
-    ): Chat = withContext(Dispatchers.IO) {
+    ): ChatEntity = withContext(Dispatchers.IO) {
         transaction {
-            Chat.new {
+            ChatEntity.new {
                 this.userId = userId
                 this.createdDate = createdDate
                 this.lastChangedDate = lastChangedDate
@@ -45,15 +51,14 @@ class ChatService() {
     }
 
 
-    suspend fun getAllChatsByUserId(userId: Int) =
-        withContext(Dispatchers.IO) {
-            Chat.find {  Chats.userId eq userId }.toList()
-        }
+    suspend fun getAllChatsByUserId(userId: Int) = suspendTransaction {
+        ChatEntity.find { Chats.userId eq userId }.map(::daoToModel)
+    }
 
-    suspend fun getChatById(id: Int): Chat? =
+    suspend fun getChatById(id: Int): ChatEntity? =
         withContext(Dispatchers.IO) {
             transaction {
-                Chat.findById(id)
+                ChatEntity.findById(id)
             }
         }
 }

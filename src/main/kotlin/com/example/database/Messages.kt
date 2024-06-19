@@ -1,5 +1,7 @@
 package com.example.database
 
+import com.example.chatHistory.models.Message
+import com.example.utils.suspendTransaction
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.datetime.LocalDateTime
@@ -19,13 +21,21 @@ object Messages : IntIdTable() {
 }
 
 
-class Message(id: EntityID<Int>) : IntEntity(id) {
-    companion object : IntEntityClass<Message>(Messages)
+class MessageEntity(id: EntityID<Int>) : IntEntity(id) {
+    companion object : IntEntityClass<MessageEntity>(Messages)
 
     var chatId by Messages.chatId
     var isUserRole by Messages.isUserRole
     var content by Messages.content
     var dateTime by Messages.dateTime
+}
+
+private fun entityToDomain(messageEntity: MessageEntity): Message {
+    return Message(
+        id = messageEntity.id.value,
+        isUserRole = messageEntity.isUserRole,
+        content = messageEntity.content
+    )
 }
 
 
@@ -36,9 +46,9 @@ class MessageService() {
         isUserRole: Boolean,
         content: String,
         dateTime: LocalDateTime
-    ): Message = withContext(Dispatchers.IO) {
+    ): MessageEntity = withContext(Dispatchers.IO) {
         transaction {
-            Message.new {
+            MessageEntity.new {
                 this.chatId = chatId
                 this.isUserRole = isUserRole
                 this.content = content
@@ -47,11 +57,7 @@ class MessageService() {
         }
     }
 
-    suspend fun getMessagesByChatId(chatId: Int) =
-        withContext(Dispatchers.IO) {
-            transaction {
-                Message.find { Messages.chatId eq chatId }.toList()
-            }
-        }
-
+    suspend fun getMessagesByChatId(chatId: Int) = suspendTransaction {
+        MessageEntity.find { Messages.chatId eq chatId }.map(::entityToDomain)
+    }
 }

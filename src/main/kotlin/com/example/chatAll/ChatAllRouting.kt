@@ -29,10 +29,10 @@ fun Route.chatAllRouting(
 
         val chats = chatService.getAllChatsByUserId(token.userId)
 
-        val chatResponseList = chats.map { chat->
+        val chatResponseList = chats.map { chat ->
             ChatAllResponse(
-                chatId = chat.id.value,
-                firstMessagePreview = messageService.getMessagesByChatId(chat.id.value).firstOrNull()?.content.orEmpty(),
+                chatId = chat.id,
+                firstMessagePreview = messageService.getMessagesByChatId(chat.id).firstOrNull()?.content.orEmpty(),
                 createdDate = chat.createdDate.toInstant(TimeZone.UTC).toEpochMilliseconds(),
                 lastChangedDate = chat.lastChangedDate.toInstant(TimeZone.UTC).toEpochMilliseconds(),
             )
