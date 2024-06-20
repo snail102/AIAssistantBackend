@@ -6,10 +6,8 @@ import com.example.chatAll.chatAllRouting
 import com.example.chatHistory.chatHistoryRouting
 import com.example.client
 import com.example.confirmationEmail.confirmationEmailRouting
-import com.example.database.ChatService
-import com.example.database.MessageService
-import com.example.database.TokenService
-import com.example.database.UserService
+import com.example.database.*
+import com.example.gptTokens.gptTokensRouting
 import com.example.localDataSource.ChatHistory
 import com.example.mailSender.MailSender
 import com.example.models.ChatMessage
@@ -37,6 +35,7 @@ fun Application.configureRouting() {
         val tokenService by inject<TokenService>()
         val chatService by inject<ChatService>()
         val messageService by inject<MessageService>()
+        val gptTokenService by inject<GptTokenService>()
 
         authorizationRouting(
             userService = userService,
@@ -50,7 +49,8 @@ fun Application.configureRouting() {
         )
 
         confirmationEmailRouting(
-            userService = userService
+            userService = userService,
+            gptTokenService = gptTokenService
         )
 
         refreshTokenRouting(tokenService = tokenService)
@@ -78,6 +78,11 @@ fun Application.configureRouting() {
                 userService = userService,
                 chatService = chatService,
                 messageService = messageService
+            )
+
+            gptTokensRouting(
+                gptTokenService = gptTokenService,
+                tokensService = tokenService
             )
         }
     }

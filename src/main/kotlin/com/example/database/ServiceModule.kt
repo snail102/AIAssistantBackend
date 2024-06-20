@@ -7,4 +7,5 @@ val serviceModule = module {
     single { TokenService() }
     single { ChatService() }
     single { MessageService() }
+    single { GptTokenService() }
 }

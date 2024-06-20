@@ -1,5 +1,6 @@
 package com.example.database
 
+import com.example.chat.domain.models.Chat
 import com.example.utils.suspendTransaction
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -27,7 +28,7 @@ class ChatEntity(id: EntityID<Int>) : IntEntity(id) {
     var lastChangedDate by Chats.lastChangedDate
 }
 
-private fun daoToModel(dao: ChatEntity) = com.example.chat.domain.models.Chat(
+private fun daoToModel(dao: ChatEntity) = Chat(
     id = dao.id.value,
     userId = dao.userId,
     createdDate = dao.createdDate,
