@@ -25,7 +25,7 @@ fun Route.chatAllRouting(
         val tokenHeader = call.request.authorization()?.split(" ") ?: return@get call.respond(HttpStatusCode.NotFound)
         val jwtToken = tokenHeader.getOrNull(1) ?: return@get call.respond(HttpStatusCode.NotFound)
 
-        val token = tokensService.getTokenByAccessToken(jwtToken) ?: return@get call.respond(HttpStatusCode.NotFound)
+        val token = tokensService.getTokenByAccessToken(jwtToken) ?: return@get call.respond(HttpStatusCode.Unauthorized)
 
         val chats = chatService.getAllChatsByUserId(token.userId)
 

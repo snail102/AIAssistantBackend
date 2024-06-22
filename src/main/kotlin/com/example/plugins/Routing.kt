@@ -64,7 +64,8 @@ fun Application.configureRouting() {
                 tokensService = tokenService,
                 userService = userService,
                 chatService = chatService,
-                messageService = messageService
+                messageService = messageService,
+                gptTokenService = gptTokenService
             )
 
             chatHistoryRouting(

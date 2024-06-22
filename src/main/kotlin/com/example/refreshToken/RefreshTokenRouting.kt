@@ -14,7 +14,7 @@ fun Route.refreshTokenRouting(tokenService: TokenService) {
         val refreshTokenRequest = call.receive<RefreshTokenRequest>()
         val token = tokenService.getTokenByRefreshToken(
             refreshToken = refreshTokenRequest.refreshToken
-        ) ?: return@post call.respond(HttpStatusCode.NotFound)
+        ) ?: return@post call.respond(HttpStatusCode.NotFound, "Not found tokens")
 
         val generatedTokens = JwtConfig.getTokens(token.userId)
         tokenService.updateToken(generatedTokens)

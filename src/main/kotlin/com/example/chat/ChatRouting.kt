@@ -24,14 +24,15 @@ fun Route.chatRouting(
     tokensService: TokenService,
     userService: UserService,
     chatService: ChatService,
-    messageService: MessageService
+    messageService: MessageService,
+    gptTokenService: GptTokenService
 ) {
     post("/chat/completions") {
 
         val tokenHeader = call.request.authorization()?.split(" ") ?: return@post call.respond(HttpStatusCode.NotFound)
         val jwtToken = tokenHeader.getOrNull(1) ?: return@post call.respond(HttpStatusCode.NotFound)
 
-        val token = tokensService.getTokenByAccessToken(jwtToken) ?: return@post call.respond(HttpStatusCode.NotFound)
+        val token = tokensService.getTokenByAccessToken(jwtToken) ?: return@post call.respond(HttpStatusCode.Unauthorized)
 
         val chatMessage = call.receive<ChatMessage>()
         val startDialog = listOf(
@@ -93,6 +94,8 @@ fun Route.chatRouting(
             } else {
                 chatId
             }
+
+            gptTokenService.updateGptTokensByUserId(userId = token.userId, usedGptTokens = responseGpt.usage.totalTokens)
 
 
             messageService.createMessage(

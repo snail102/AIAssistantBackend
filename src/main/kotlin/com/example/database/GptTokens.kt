@@ -1,5 +1,6 @@
 package com.example.database
 
+import com.example.database.Tokens.accessToken
 import com.example.gptTokens.models.GptToken
 import com.example.utils.suspendTransaction
 import org.jetbrains.exposed.dao.IntEntity
@@ -7,6 +8,9 @@ import org.jetbrains.exposed.dao.IntEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.IntIdTable
 import org.jetbrains.exposed.sql.ReferenceOption
+import org.jetbrains.exposed.sql.SqlExpressionBuilder
+import org.jetbrains.exposed.sql.update
+import kotlin.math.max
 
 object GptTokens : IntIdTable() {
     val userId = integer("user_id").references(Users.id, onDelete = ReferenceOption.CASCADE)
@@ -43,6 +47,15 @@ class GptTokenService() {
 
     suspend fun getGtpTokensByUserId(userId: Int) = suspendTransaction {
         GptTokenEntity.find { GptTokens.userId eq userId }.singleOrNull()?.let(::entityToDomain)
+    }
+
+    suspend fun updateGptTokensByUserId(userId: Int, usedGptTokens: Int) = suspendTransaction {
+        GptTokens.update({ GptTokens.userId eq userId }) {
+            with(SqlExpressionBuilder) {
+                it.update(GptTokens.availableGtpTokens, GptTokens.availableGtpTokens - usedGptTokens)
+                it.update(GptTokens.usedGptTokens, GptTokens.usedGptTokens + usedGptTokens)
+            }
+        }
     }
 
     suspend fun getGptTokensById(id: Int) = suspendTransaction {

@@ -31,6 +31,7 @@ object  DatabaseFactory {
             SchemaUtils.create(Tokens)
             SchemaUtils.create(Messages)
             SchemaUtils.create(Chats)
+            SchemaUtils.create(GptTokens)
         }
     }
 }
