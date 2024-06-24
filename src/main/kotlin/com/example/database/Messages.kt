@@ -58,6 +58,6 @@ class MessageService() {
     }
 
     suspend fun getMessagesByChatId(chatId: Int) = suspendTransaction {
-        MessageEntity.find { Messages.chatId eq chatId }.map(::entityToDomain)
+        MessageEntity.find { Messages.chatId eq chatId }.sortedBy { it.id }.map(::entityToDomain)
     }
 }

@@ -53,7 +53,7 @@ class ChatService() {
 
 
     suspend fun getAllChatsByUserId(userId: Int) = suspendTransaction {
-        ChatEntity.find { Chats.userId eq userId }.map(::daoToModel)
+        ChatEntity.find { Chats.userId eq userId }.sortedByDescending { it.id }.map(::daoToModel)
     }
 
     suspend fun getChatById(id: Int): ChatEntity? =
