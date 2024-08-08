@@ -3,6 +3,7 @@ package com.example.confirmationEmail
 import com.example.authentication.JwtConfig
 import com.example.confirmationEmail.models.ConfirmEmailRequest
 import com.example.database.GptTokenService
+import com.example.database.TokenService
 import com.example.database.UserService
 import com.example.localDataSource.TempUserRegistration
 import com.example.models.TokenDto
@@ -11,7 +12,11 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 
-fun Route.confirmationEmailRouting(userService: UserService, gptTokenService: GptTokenService) {
+fun Route.confirmationEmailRouting(
+    userService: UserService,
+    gptTokenService: GptTokenService,
+    tokenService: TokenService
+) {
     post("/confirmation_email") {
 
         val confirmEmailRequest = call.receive<ConfirmEmailRequest>()
@@ -33,6 +38,14 @@ fun Route.confirmationEmailRouting(userService: UserService, gptTokenService: Gp
             )
 
             val generatedTokens = JwtConfig.getTokens(user.id.value)
+
+            tokenService.createToken(
+                userId = user.id.value,
+                accessToken = generatedTokens.access,
+                refreshToken = generatedTokens.refresh,
+                accessExpiresAt = generatedTokens.accessExpiresAt,
+                refreshExpiresAt = generatedTokens.refreshExpiresAt
+            )
             call.respond(
                 TokenDto(
                     accessToken = generatedTokens.access,

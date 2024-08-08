@@ -6,6 +6,7 @@ import com.example.chatAll.chatAllRouting
 import com.example.chatHistory.chatHistoryRouting
 import com.example.client
 import com.example.confirmationEmail.confirmationEmailRouting
+import com.example.confirmationEmail.retryConfirmationEmailCodeRouting
 import com.example.database.*
 import com.example.gptTokens.gptTokensRouting
 import com.example.localDataSource.ChatHistory
@@ -50,8 +51,11 @@ fun Application.configureRouting() {
 
         confirmationEmailRouting(
             userService = userService,
-            gptTokenService = gptTokenService
+            gptTokenService = gptTokenService,
+            tokenService = tokenService
         )
+
+        retryConfirmationEmailCodeRouting(mailSender = mailSender)
 
         refreshTokenRouting(tokenService = tokenService)
 

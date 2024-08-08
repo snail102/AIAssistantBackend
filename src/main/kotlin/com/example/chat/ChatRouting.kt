@@ -71,7 +71,7 @@ fun Route.chatRouting(
             content = chatMessage.content
         )
         val request = RequestGpt(
-            model = "gpt-3.5-turbo",
+            model = "gpt-4o-mini",
             messages = if (historyMessage.isEmpty()) {
                 startDialog
             } else {

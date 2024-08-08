@@ -46,6 +46,6 @@ fun Route.registrationRouting(userService: UserService, mailSender: MailSender) 
 }
 
 
-private fun generateEmailConfirmationCode(): String {
+fun generateEmailConfirmationCode(): String {
     return Random.nextInt(from = 1000, until = 9999).toString()
 }
